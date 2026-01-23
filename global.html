@@ -291,28 +291,28 @@
   <script>
     // ----- Axes (fixed) -----
     const AXES = [
-      { name: "Digital Integrity", desc: "Truthfulness, consistency, restraint" },
-      { name: "Narrative Responsibility", desc: "Care in framing, rhetoric, amplification" },
-      { name: "Equity in Practice", desc: "Fairness beyond slogans and optics" },
-      { name: "Civic Signal Clarity", desc: "Noise vs signal in public communication" },
-      { name: "Global Responsibility", desc: "Stewardship beyond borders" },
-      { name: "Platform Governance Literacy", desc: "Understanding platform power & limits" }
+      { name: "Courage", desc: "Truthfulness, consistency, restraint" },
+      { name: "Empathy", desc: "Care in framing, rhetoric, amplification" },
+      { name: "Justice", desc: "Fairness beyond slogans and optics" },
+      { name: "Imagination", desc: "Noise vs signal in public communication" },
+      { name: "Integrity", desc: "Stewardship beyond borders" },
+      { name: "Transparency", desc: "Understanding platform power & limits" }
     ];
 
     // ----- Hard-coded LLM Avg scores (PLACEHOLDERS) -----
     // Replace these with your real "avg of 4 LLMs" values.
     const LEADERS = {
-      "Putin":        [2, 2, 1, 2, 1, 2],
-      "Putin-pre war":[2, 2, 1, 2, 1, 2],
-      "Xi Jinping":   [3, 2, 2, 2, 2, 2],
-      "Kim Jong Un":  [1, 1, 1, 1, 1, 1],
-      "Modi-Domestic":[3, 3, 3, 3, 2, 3],
-      "Modi-Global":  [3, 3, 3, 3, 2, 3],
-      "Netanyahu":    [3, 2, 2, 2, 2, 2],
-      "Obama":        [7, 7, 6, 7, 7, 6],
-      "Biden":        [6, 6, 5, 6, 6, 5],
-      "Trump 1.0":    [2, 2, 2, 1, 2, 2],
-      "Trump 2.0":    [2, 2, 2, 1, 2, 2],
+      "Putin":        [5, 5, 3, 5, 5, 4],
+      "Putin-pre Ukr war":[6, 6, 5, 6, 5, 5],
+      "Xi Jinping":   [6, 4, 4, 7, 5, 3],
+      "Kim Jong Un":  [3, 2, 2, 2, 2, 1],
+      "Modi-Domestic":[8, 7, 6, 6, 6, 7],
+      "Modi-Global":  [4, 3, 2, 3, 2, 2],
+      "Netanyahu":    [5, 2, 2, 3, 1, 2],
+      "Obama":        [8, 8, 7, 6, 8, 7],
+      "Biden":        [6, 6, 6, 7, 7, 6],
+      "Trump 1.0":    [4, 5, 3, 3, 3, 4],
+      "Trump 2.0":    [3, 2, 3, 2, 2, 3],
     };
 
     // ----- Build dropdown -----
