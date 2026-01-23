@@ -512,6 +512,10 @@ function updateScoreBox(){
   const llmSum = sum(chart.data.datasets[0].data);
   const yourSum = sum(chart.data.datasets[1].data);
   const leader = leaderSelect.value;
+  const metaN = document.getElementById("metaN");
+if (metaN) {
+  metaN.textContent = (META[leader] ?? "—");
+}
 
   // Neat one-line label near chart (optional but recommended)
   const leaderLine = document.getElementById("leaderLine");
