@@ -491,14 +491,24 @@
 
     function sum(arr){ return arr.reduce((a,b)=>a+Number(b||0),0); }
 
-    function updateScoreBox(){
-      const llmSum = sum(chart.data.datasets[0].data);
-      const yourSum = sum(chart.data.datasets[1].data);
-      const leader = leaderSelect.value;
+function updateScoreBox(){
+  const llmSum = sum(chart.data.datasets[0].data);
+  const yourSum = sum(chart.data.datasets[1].data);
+  const leader = leaderSelect.value;
 
-      scoreBox.textContent = `${leader} — LLM Avg: ${llmSum} / 60  |  Your Score: ${yourSum} / 60`;
-      scoreSmall.textContent = `Axes are scored 0–10. You can load the LLM Avg as a reference, then adjust Your Score.`;
-    }
+  // Neat one-line label near chart (optional but recommended)
+  const leaderLine = document.getElementById("leaderLine");
+  if (leaderLine) {
+    leaderLine.innerHTML =
+      `<strong>Selected:</strong> ${leader} &nbsp;|&nbsp; ` +
+      `<strong>LLM Avg:</strong> ${llmSum}/60 &nbsp;|&nbsp; ` +
+      `<strong>Your Score:</strong> ${yourSum}/60`;
+  }
+
+  // Existing score box (keep)
+  scoreBox.textContent = `${leader} — LLM Avg: ${llmSum} / 60  |  Your Score: ${yourSum} / 60`;
+  scoreSmall.textContent = `Axes are scored 0–10. You can load the LLM Avg as a reference, then adjust Your Score.`;
+}
     updateScoreBox();
 
     // ----- Download PNG -----
