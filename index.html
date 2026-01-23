@@ -215,6 +215,37 @@
       .grid{ grid-template-columns: 1fr; }
       .chartBox{ height: 380px; }
     }
+    /* ---------- Top back navigation bar ---------- */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  border:1px solid rgba(42,49,66,.85);
+  background: rgba(11,13,18,.55);
+  border-radius: 14px;
+}
+
+.backlink{
+  color: var(--text);
+  text-decoration:none;
+  font-size:12px;
+  padding:8px 10px;
+  border-radius: 12px;
+  border:1px solid rgba(42,49,66,.85);
+  background: rgba(11,13,18,.55);
+}
+
+.backlink:hover{
+  border-color: rgba(201,162,106,.6);
+}
+
+.backlink.subtle{
+  color: var(--muted);
+}
   </style>
 </head>
 
@@ -504,4 +535,5 @@
 </script>
 </body>
 </html>
+
 
