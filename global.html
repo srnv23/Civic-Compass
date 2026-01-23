@@ -1,1 +1,491 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Global Leaders — Civic Compass</title>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#151922;
+      --panel2:#10131a;
+      --text:#e9edf6;
+      --muted:#aab3c5;
+      --line:#2a3142;
+      --accent:#c9a26a;   /* reader */
+      --accent2:#7aa7ff;  /* llm avg */
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #0b0d12);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:22px 16px 28px;
+    }
+
+    .topbar{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:10px 12px;
+      margin-bottom:14px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.55);
+      border-radius: 14px;
+    }
+    .backlink{
+      color: var(--text);
+      text-decoration:none;
+      font-size:12px;
+      padding:8px 10px;
+      border-radius: 12px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.55);
+      display:inline-flex;
+      gap:8px;
+      align-items:center;
+    }
+    .backlink:hover{ border-color: rgba(201,162,106,.6); }
+    .backlink.subtle{ color: var(--muted); }
+
+    h1{
+      font-size:22px;
+      margin:10px 0 6px;
+      letter-spacing:.2px;
+    }
+    .sub{
+      color:var(--muted);
+      margin:0 0 16px;
+      line-height:1.45;
+      font-size:13px;
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap:14px;
+    }
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+    }
+
+    .card{
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+      border:1px solid rgba(42,49,66,.85);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .card-header{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:12px 12px;
+      background: rgba(16,19,26,.8);
+      border-bottom:1px solid rgba(42,49,66,.85);
+    }
+    .card-header .title{
+      font-weight:700;
+      font-size:13px;
+      letter-spacing:.25px;
+    }
+
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+    }
+    select, button{
+      background: rgba(11,13,18,.55);
+      border:1px solid rgba(42,49,66,.85);
+      color:var(--text);
+      border-radius: 12px;
+      padding:8px 10px;
+      font-size:12px;
+      cursor:pointer;
+      outline:none;
+    }
+    button:hover{ border-color: rgba(201,162,106,.6); }
+    select{ min-width: 220px; }
+
+    .body{
+      padding:12px;
+      background: rgba(16,19,26,.35);
+    }
+
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size:13px;
+    }
+    thead th{
+      text-align:left;
+      color:var(--muted);
+      font-weight:600;
+      padding:10px 8px;
+      border-bottom:1px solid rgba(42,49,66,.85);
+      vertical-align:bottom;
+    }
+    tbody td{
+      padding:10px 8px;
+      border-bottom:1px solid rgba(42,49,66,.55);
+      vertical-align:middle;
+    }
+    .axis{
+      font-weight:700;
+      margin-bottom:2px;
+    }
+    .desc{
+      color:var(--muted);
+      font-size:12px;
+      line-height:1.25;
+    }
+
+    .num{
+      width:70px;
+      text-align:center;
+      border-radius: 10px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.55);
+      color: var(--text);
+      padding:7px 8px;
+      font-size:12px;
+      outline:none;
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      margin-top:10px;
+      line-height:1.4;
+    }
+
+    .chart-wrap{
+      padding:14px 12px 10px;
+    }
+    .legend-note{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      color:var(--muted);
+      font-size:12px;
+      margin:8px 0 0;
+    }
+    .dot{
+      width:10px;height:10px;border-radius:999px;display:inline-block;margin-right:6px;
+    }
+    .dot.llm{ background: var(--accent2); }
+    .dot.you{ background: var(--accent); }
+
+    .scorebox{
+      margin-top:12px;
+      padding:10px 12px;
+      border-radius: 14px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.35);
+      color: var(--text);
+      font-size:13px;
+    }
+    .scorebox small{ color:var(--muted); display:block; margin-top:4px; }
+
+    .disclaimer{
+      margin-top:12px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.45;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <a class="backlink" href="https://unclesam2.com/plot-your-compass/">
+        ← Back
+      </a>
+      <a class="backlink subtle" href="https://unclesam2.com">
+        UncleSam2.com
+      </a>
+    </div>
+
+    <h1>Global Leaders Scores — Civic Compass</h1>
+    <p class="sub">
+      Select a leader to view the <b>LLM Avg (4 models)</b> profile and compare it with <b>Your Score</b>.
+      Your Score is editable on each axis (0–10).
+    </p>
+
+    <div class="grid">
+
+      <!-- LEFT: Inputs -->
+      <div class="card">
+        <div class="card-header">
+          <div class="title">Leader + Your Score (0–10)</div>
+          <div class="controls">
+            <select id="leaderSelect" aria-label="Select leader"></select>
+            <button id="loadLLM" type="button">Load LLM Avg</button>
+            <button id="copyLLM" type="button" title="Copies LLM Avg into Your Score fields">Copy to Your Score</button>
+            <button id="resetYou" type="button">Reset Your Score</button>
+          </div>
+        </div>
+        <div class="body">
+          <table>
+            <thead>
+              <tr>
+                <th>Axis</th>
+                <th style="text-align:center;">YOUR SCORE</th>
+              </tr>
+            </thead>
+            <tbody id="rows"></tbody>
+          </table>
+          <div class="hint">
+            Tip: Use <b>Load LLM Avg</b> to plot the reference profile. Then adjust <b>Your Score</b> to reflect your own rating.
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Chart -->
+      <div class="card">
+        <div class="card-header">
+          <div class="title">Radar Plot</div>
+          <div class="controls">
+            <button id="downloadPNG" type="button">Download PNG</button>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="radar" width="640" height="520"></canvas>
+
+          <div class="legend-note">
+            <span><span class="dot llm"></span>LLM Avg (4 models)</span>
+            <span><span class="dot you"></span>Your Score</span>
+          </div>
+
+          <div class="scorebox" id="scoreBox">
+            Loading…
+            <small id="scoreSmall"></small>
+          </div>
+
+          <div class="disclaimer">
+            <b>Note:</b> LLM Avg scores are synthesized estimates for comparative reflection and discussion. They are not factual measurements.
+            Your Score represents your own rating using the same axes.
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // ----- Axes (fixed) -----
+    const AXES = [
+      { name: "Digital Integrity", desc: "Truthfulness, consistency, restraint" },
+      { name: "Narrative Responsibility", desc: "Care in framing, rhetoric, amplification" },
+      { name: "Equity in Practice", desc: "Fairness beyond slogans and optics" },
+      { name: "Civic Signal Clarity", desc: "Noise vs signal in public communication" },
+      { name: "Global Responsibility", desc: "Stewardship beyond borders" },
+      { name: "Platform Governance Literacy", desc: "Understanding platform power & limits" }
+    ];
+
+    // ----- Hard-coded LLM Avg scores (PLACEHOLDERS) -----
+    // Replace these with your real "avg of 4 LLMs" values.
+    const LEADERS = {
+      "Putin":        [2, 2, 1, 2, 1, 2],
+      "Xi Jinping":   [3, 2, 2, 2, 2, 2],
+      "Kim Jong Un":  [1, 1, 1, 1, 1, 1],
+      "Modi":         [3, 3, 3, 3, 2, 3],
+      "Netanyahu":    [3, 2, 2, 2, 2, 2],
+      "Obama":        [7, 7, 6, 7, 7, 6],
+      "Biden":        [6, 6, 5, 6, 6, 5],
+      "Trump":        [2, 2, 2, 1, 2, 2]
+    };
+
+    // ----- Build dropdown -----
+    const leaderSelect = document.getElementById("leaderSelect");
+    Object.keys(LEADERS).forEach((name) => {
+      const opt = document.createElement("option");
+      opt.value = name;
+      opt.textContent = name;
+      leaderSelect.appendChild(opt);
+    });
+
+    // ----- Build input rows -----
+    const rows = document.getElementById("rows");
+    const inputs = [];
+
+    AXES.forEach((a, i) => {
+      const tr = document.createElement("tr");
+
+      const tdAxis = document.createElement("td");
+      tdAxis.innerHTML = `<div class="axis">${a.name}</div><div class="desc">${a.desc}</div>`;
+
+      const tdNum = document.createElement("td");
+      tdNum.style.textAlign = "center";
+
+      const inp = document.createElement("input");
+      inp.type = "number";
+      inp.min = "0";
+      inp.max = "10";
+      inp.step = "1";
+      inp.value = "0";
+      inp.className = "num";
+      inp.addEventListener("input", () => {
+        clampInput(inp);
+        updateYourDatasetFromInputs();
+        updateScoreBox();
+      });
+
+      inputs.push(inp);
+      tdNum.appendChild(inp);
+
+      tr.appendChild(tdAxis);
+      tr.appendChild(tdNum);
+      rows.appendChild(tr);
+    });
+
+    function clampInput(inp){
+      let v = Number(inp.value);
+      if (Number.isNaN(v)) v = 0;
+      v = Math.max(0, Math.min(10, Math.round(v)));
+      inp.value = String(v);
+    }
+
+    // ----- Chart setup -----
+    const ctx = document.getElementById("radar");
+    const axisLabels = AXES.map(a => a.name);
+
+    // Start with first leader's LLM data
+    let currentLeader = leaderSelect.value;
+    let llmData = [...LEADERS[currentLeader]];
+    let yourData = inputs.map(inp => Number(inp.value));
+
+    const chart = new Chart(ctx, {
+      type: "radar",
+      data: {
+        labels: axisLabels,
+        datasets: [
+          {
+            label: "LLM Avg (4 models)",
+            data: llmData,
+            borderWidth: 2,
+            pointRadius: 3,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue("--accent2").trim(),
+            backgroundColor: "rgba(122,167,255,.12)"
+          },
+          {
+            label: "Your Score",
+            data: yourData,
+            borderWidth: 2,
+            pointRadius: 3,
+            borderColor: getComputedStyle(document.documentElement).getPropertyValue("--accent").trim(),
+            backgroundColor: "rgba(201,162,106,.18)"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: { color: "#e9edf6" }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ${ctx.raw}/10`
+            }
+          }
+        },
+        scales: {
+          r: {
+            suggestedMin: 0,
+            suggestedMax: 10,
+            ticks: { stepSize: 2, color: "#aab3c5", backdropColor: "rgba(0,0,0,0)" },
+            grid: { color: "rgba(42,49,66,.85)" },
+            angleLines: { color: "rgba(42,49,66,.85)" },
+            pointLabels: { color: "#e9edf6", font: { size: 12 } }
+          }
+        }
+      }
+    });
+
+    // Make canvas area taller (since maintainAspectRatio:false)
+    // Set a fixed height on parent via JS for consistent look:
+    ctx.parentElement.style.height = "520px";
+
+    // ----- Buttons -----
+    document.getElementById("loadLLM").addEventListener("click", () => {
+      currentLeader = leaderSelect.value;
+      llmData = [...LEADERS[currentLeader]];
+      chart.data.datasets[0].data = llmData;
+      chart.update();
+      updateScoreBox();
+    });
+
+    document.getElementById("copyLLM").addEventListener("click", () => {
+      currentLeader = leaderSelect.value;
+      const scores = LEADERS[currentLeader];
+      inputs.forEach((inp, i) => { inp.value = String(scores[i]); });
+      updateYourDatasetFromInputs();
+      updateScoreBox();
+    });
+
+    document.getElementById("resetYou").addEventListener("click", () => {
+      inputs.forEach(inp => inp.value = "0");
+      updateYourDatasetFromInputs();
+      updateScoreBox();
+    });
+
+    leaderSelect.addEventListener("change", () => {
+      // Optional: auto-load LLM when leader changes
+      currentLeader = leaderSelect.value;
+      llmData = [...LEADERS[currentLeader]];
+      chart.data.datasets[0].data = llmData;
+      chart.update();
+      updateScoreBox();
+    });
+
+    function updateYourDatasetFromInputs(){
+      yourData = inputs.map(inp => Number(inp.value));
+      chart.data.datasets[1].data = yourData;
+      chart.update();
+    }
+
+    // ----- Scorebox -----
+    const scoreBox = document.getElementById("scoreBox");
+    const scoreSmall = document.getElementById("scoreSmall");
+
+    function sum(arr){ return arr.reduce((a,b)=>a+Number(b||0),0); }
+
+    function updateScoreBox(){
+      const llmSum = sum(chart.data.datasets[0].data);
+      const yourSum = sum(chart.data.datasets[1].data);
+      const leader = leaderSelect.value;
+
+      scoreBox.textContent = `${leader} — LLM Avg: ${llmSum} / 60  |  Your Score: ${yourSum} / 60`;
+      scoreSmall.textContent = `Axes are scored 0–10. You can load the LLM Avg as a reference, then adjust Your Score.`;
+    }
+    updateScoreBox();
+
+    // ----- Download PNG -----
+    document.getElementById("downloadPNG").addEventListener("click", () => {
+      const a = document.createElement("a");
+      a.download = `civic-compass-${leaderSelect.value.replace(/\s+/g,'-').toLowerCase()}.png`;
+      a.href = chart.toBase64Image();
+      a.click();
+    });
+  </script>
+</body>
+</html>
 
