@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Plot Your Civic Compass</title>
+
+  <!-- Chart.js (CDN) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+  <style>
+    :root{
+      --bg:#0f1115;
+      --panel:#151922;
+      --panel2:#10131a;
+      --text:#e9edf6;
+      --muted:#aab3c5;
+      --line:#2a3142;
+      --accent:#c9a26a;
+      --radius:14px;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: linear-gradient(180deg, var(--bg), #0b0d12);
+      color:var(--text);
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:22px 16px 28px;
+    }
+    .header{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:16px;
+      margin-bottom:14px;
+    }
+    .title{
+      font-size:18px;
+      font-weight:650;
+      letter-spacing:.2px;
+      margin:0;
+    }
+    .subtitle{
+      margin:6px 0 0;
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      max-width:80ch;
+    }
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      background: rgba(201,162,106,.12);
+      border:1px solid rgba(201,162,106,.25);
+      color: var(--text);
+      border-radius:999px;
+      font-size:12px;
+      white-space:nowrap;
+      height:fit-content;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 440px 1fr;
+      gap:14px;
+      align-items:stretch;
+    }
+    .card{
+      background: linear-gradient(180deg, rgba(21,25,34,.95), rgba(16,19,26,.95));
+      border:1px solid rgba(42,49,66,.9);
+      border-radius: var(--radius);
+      overflow:hidden;
+      box-shadow: 0 10px 30px rgba(0,0,0,.25);
+    }
+    .cardHead{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(42,49,66,.85);
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+    }
+    .cardHead h2{
+      margin:0;
+      font-size:13px;
+      font-weight:650;
+      letter-spacing:.3px;
+      color:var(--text);
+    }
+    .tools{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+    }
+    button{
+      appearance:none;
+      border:1px solid rgba(42,49,66,.95);
+      background: rgba(11,13,18,.75);
+      color: var(--text);
+      padding:8px 10px;
+      border-radius:12px;
+      font-size:12px;
+      cursor:pointer;
+      transition: transform .05s ease, border-color .2s ease, background .2s ease;
+    }
+    button:hover{ border-color: rgba(201,162,106,.6); }
+    button:active{ transform: translateY(1px); }
+    .primary{
+      border-color: rgba(201,162,106,.6);
+      background: rgba(201,162,106,.12);
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+    }
+    thead th{
+      font-size:11px;
+      color:var(--muted);
+      font-weight:650;
+      text-transform:uppercase;
+      letter-spacing:.6px;
+      padding:10px 12px;
+      border-bottom:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.35);
+    }
+    tbody td{
+      padding:10px 12px;
+      border-bottom:1px solid rgba(42,49,66,.6);
+      vertical-align:middle;
+      font-size:13px;
+    }
+    .axis{
+      display:flex;
+      flex-direction:column;
+      gap:2px;
+    }
+    .axis small{
+      color:var(--muted);
+      font-size:11px;
+      line-height:1.2;
+    }
+    .num{
+      width:86px;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(42,49,66,.95);
+      background: rgba(11,13,18,.55);
+      color:var(--text);
+      font-size:13px;
+      outline:none;
+      text-align:center;
+    }
+    .num:focus{
+      border-color: rgba(201,162,106,.7);
+      box-shadow: 0 0 0 3px rgba(201,162,106,.12);
+    }
+    .hint{
+      padding:10px 14px 14px;
+      color: var(--muted);
+      font-size:12px;
+      line-height:1.35;
+    }
+
+    .chartWrap{
+      padding:14px;
+    }
+    .chartBox{
+      height: 430px;
+      padding:10px;
+      background: rgba(11,13,18,.35);
+      border:1px solid rgba(42,49,66,.7);
+      border-radius: 14px;
+    }
+
+    .legendNote{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      color: var(--muted);
+      font-size:12px;
+    }
+    .swatch{
+      display:inline-flex; align-items:center; gap:8px;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.55);
+    }
+    .dot{
+      width:10px; height:10px; border-radius:50%;
+      background:#fff;
+      box-shadow: 0 0 0 3px rgba(255,255,255,.08) inset;
+    }
+    .score{
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.55);
+      color: var(--text);
+      font-size:13px;
+      line-height:1.35;
+    }
+    .score small{ color: var(--muted); font-size:12px; }
+
+    .candidate-section{
+      padding:12px 14px;
+      border-bottom:1px solid rgba(42,49,66,.85);
+      background: rgba(11,13,18,.35);
+    }
+    
+    .candidate-section label{
+      display:block;
+      font-size:12px;
+      font-weight:650;
+      color:var(--muted);
+      margin-bottom:6px;
+      text-transform:uppercase;
+      letter-spacing:.3px;
+    }
+    
+    .candidate-input{
+      width:100%;
+      padding:8px 10px;
+      border-radius:10px;
+      border:1px solid rgba(42,49,66,.95);
+      background: rgba(11,13,18,.55);
+      color:var(--text);
+      font-size:13px;
+      outline:none;
+      box-sizing:border-box;
+    }
+    
+    .candidate-input:focus{
+      border-color: rgba(201,162,106,.7);
+      box-shadow: 0 0 0 3px rgba(201,162,106,.12);
+    }
+
+    @media (max-width: 900px){
+      .grid{ grid-template-columns: 1fr; }
+      .chartBox{ height: 380px; }
+    }
+    /* ---------- Top back navigation bar ---------- */
+
+.topbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:10px 12px;
+  margin-bottom:14px;
+  border:1px solid rgba(42,49,66,.85);
+  background: rgba(11,13,18,.55);
+  border-radius: 14px;
+}
+
+.backlink{
+  color: var(--text);
+  text-decoration:none;
+  font-size:12px;
+  padding:8px 10px;
+  border-radius: 12px;
+  border:1px solid rgba(42,49,66,.85);
+  background: rgba(11,13,18,.55);
+}
+
+.backlink:hover{
+  border-color: rgba(201,162,106,.6);
+}
+
+.backlink.subtle{
+  color: var(--muted);
+}
+  </style>
+</head>
+
+<body>
+  <div class="wrap"><div class="topbar">
+  <a class="backlink" href="https://unclesam2.com/plot-your-compass/" aria-label="Back to Plot Your Compass">
+    ← Back
+  </a>
+  <div class="topbar-right">
+    <a class="backlink subtle" href="https://unclesam2.com" aria-label="UncleSam2 Home">UncleSam2.com</a>
+  </div>
+</div>
+    
+    <div class="header">
+      <div>
+        <h1 class="title">Plot Your Civic Compass</h1>
+        <p class="subtitle">
+          Rate <strong>your leader</strong> on each axis from <strong>1 (min)–10 (max)</strong>.
+          Your shape is compared against the benchmark <strong>Ideal Sam (Lincoln)</strong>, set at
+          <strong>9/10</strong> on all six axes (<strong>54/60</strong>).
+        </p>
+      </div>
+      <div class="pill">🧭 Live Radar Plot</div>
+    </div>
+
+    <div class="grid">
+      <!-- INPUT CARD -->
+      <div class="card">
+        <!-- CANDIDATE NAME SECTION -->
+        <div class="candidate-section">
+          <label for="candidateName">Leader Name</label>
+          <input type="text" id="candidateName" class="candidate-input" placeholder="Enter leader's name" />
+        </div>
+
+        <div class="cardHead">
+          <h2>Inputs (0–10)</h2>
+          <div class="tools">
+            <button id="resetBtn">Reset</button>
+            <button class="primary" id="sampleBtn">Load Sample</button>
+          </div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="text-align:left">Axis</th>
+              <th style="width:120px;text-align:center"><span id="leaderLabel">Your Leader</span>'s Score</th>
+            </tr>
+          </thead>
+          <tbody id="rows"></tbody>
+        </table>
+
+        <div class="hint">
+          Tip: 0 = weak/absent, 10 = strong/ideal. Adjust values to see how your leader compares with the benchmark.
+        </div>
+      </div>
+
+      <!-- CHART CARD -->
+      <div class="card">
+        <div class="cardHead">
+          <h2>Radar Plot</h2>
+          <div class="tools">
+            <button id="downloadBtn" title="Downloads the chart as a PNG">Download PNG</button>
+          </div>
+        </div>
+
+        <div class="chartWrap">
+          <div class="chartBox">
+            <canvas id="radar"></canvas>
+          </div>
+
+          <div class="legendNote">
+            <span class="swatch"><span class="dot" style="background: rgba(160,160,160,0.95)"></span> Ideal Sam (Lincoln)</span>
+            <span class="swatch"><span class="dot" style="background: rgba(201,162,106,1)"></span> <span id="legendLabel">Your Leader</span></span>
+          </div>
+
+          <div id="scoreLine" class="score"></div>
+          <div id="interpretation" class="score" style="margin-top:8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // ---- AXES (your new 6-axis model) ----
+  const AXES = [
+    { key: "integrity", label: "Digital Integrity", desc: "Truthfulness, consistency, restraint" },
+    { key: "narrative", label: "Narrative Responsibility", desc: "Care in framing, rhetoric, amplification" },
+    { key: "equity", label: "Equity in Practice", desc: "Fairness beyond slogans and optics" },
+    { key: "signal", label: "Civic Signal Clarity", desc: "Noise vs signal in public communication" },
+    { key: "global", label: "Global Responsibility", desc: "Stewardship beyond borders" },
+    { key: "platform", label: "Platform Governance Literacy", desc: "Understanding platform power & limits" }
+  ];
+
+  // Benchmark: Ideal Sam (Lincoln) = 9/10 on all axes (54/60)
+  const IDEAL_SAM = [9, 9, 9, 9, 9, 9];
+
+  // Default (neutral-ish) starting values for user
+  const DEFAULT_DIGITAL = [1, 2, 3, 3, 2, 2];
+
+  // Sample preset (to demonstrate contrast)
+  const SAMPLE_DIGITAL = [4, 5, 6, 4, 5, 7];
+
+  const clamp01to10 = (n) => {
+    const x = Number(n);
+    if (Number.isNaN(x)) return 0;
+    return Math.max(0, Math.min(10, x));
+  };
+
+  // Build table rows (single input column)
+  const rowsEl = document.getElementById("rows");
+
+  function makeRow(axis, i) {
+    const tr = document.createElement("tr");
+
+    const tdAxis = document.createElement("td");
+    tdAxis.innerHTML = `
+      <div class="axis">
+        <div><strong>${axis.label}</strong></div>
+        <small>${axis.desc}</small>
+      </div>
+    `;
+
+    const tdDigital = document.createElement("td");
+    tdDigital.style.textAlign = "center";
+    const digitalInput = document.createElement("input");
+    digitalInput.className = "num";
+    digitalInput.type = "number";
+    digitalInput.min = "0";
+    digitalInput.max = "10";
+    digitalInput.step = "1";
+    digitalInput.value = DEFAULT_DIGITAL[i];
+    digitalInput.dataset.series = "digital";
+    digitalInput.dataset.index = String(i);
+    tdDigital.appendChild(digitalInput);
+
+    tr.appendChild(tdAxis);
+    tr.appendChild(tdDigital);
+
+    return tr;
+  }
+
+  AXES.forEach((a, i) => rowsEl.appendChild(makeRow(a, i)));
+
+  // Read inputs
+  function readSeries(seriesName) {
+    const inputs = [...document.querySelectorAll(`input[data-series="${seriesName}"]`)];
+    inputs.sort((a,b) => Number(a.dataset.index) - Number(b.dataset.index));
+    return inputs.map(inp => clamp01to10(inp.value));
+  }
+
+  function writeSeries(seriesName, arr) {
+    const inputs = [...document.querySelectorAll(`input[data-series="${seriesName}"]`)];
+    inputs.forEach(inp => {
+      const idx = Number(inp.dataset.index);
+      inp.value = clamp01to10(arr[idx] ?? 0);
+    });
+  }
+
+  // Get candidate name or default
+  function getCandidateName() {
+    const name = document.getElementById("candidateName").value.trim();
+    return name || "Your Leader";
+  }
+
+  // Update labels with candidate name
+  function updateLabels() {
+    const name = getCandidateName();
+    document.getElementById("leaderLabel").textContent = name;
+    document.getElementById("legendLabel").textContent = name;
+    chart.data.datasets[1].label = name;
+    chart.update();
+  }
+
+  // Score line update
+  function updateScore() {
+    const vals = readSeries("digital");
+    const sum = vals.reduce((a,b) => a + b, 0);
+    const idealSum = IDEAL_SAM.reduce((a,b) => a + b, 0);
+    const name = getCandidateName();
+
+    const gap = idealSum - sum;
+    const gapText = gap === 0 ? "Score matches the benchmark." :
+                    gap > 0 ? `<strong>${gap}</strong> points below the benchmark.` :
+                              `<strong>${Math.abs(gap)}</strong> points above the benchmark.`;
+
+    document.getElementById("scoreLine").innerHTML =
+      `<strong>${name}'s Civic Compass score:</strong> ${sum} / 60<br/>
+       <small><strong>Ideal Sam (Lincoln):</strong> ${idealSum} / 60 (9/10 across all axes). ${gapText}</small>`;
+    
+    updateInterpretation(sum);
+  }
+
+  // Chart.js Radar
+  const ctx = document.getElementById("radar");
+
+  const chart = new Chart(ctx, {
+    type: "radar",
+    data: {
+      labels: AXES.map(a => a.label),
+      datasets: [
+        {
+          label: "Ideal Sam (Lincoln)",
+          data: IDEAL_SAM.slice(),
+          borderColor: "rgba(160,160,160,0.95)",
+          backgroundColor: "rgba(160,160,160,0.14)",
+          borderDash: [6, 4],
+          pointRadius: 0,
+          borderWidth: 3
+        },
+        {
+          label: getCandidateName(),
+          data: readSeries("digital"),
+          borderColor: "rgba(201,162,106,1)",
+          backgroundColor: "rgba(201,162,106,0.18)",
+          pointBackgroundColor: "rgba(201,162,106,1)",
+          pointRadius: 3,
+          borderWidth: 2
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          enabled: true,
+          callbacks: {
+            label: (ctx) => `${ctx.dataset.label}: ${ctx.formattedValue}/10`
+          }
+        }
+      },
+      scales: {
+        r: {
+          min: 0,
+          max: 10,
+          ticks: {
+            stepSize: 2,
+            showLabelBackdrop: true,
+            backdropColor: "rgba(11,13,18,0.75)",
+            color: "rgba(170,179,197,0.9)"
+          },
+          grid: { color: "rgba(42,49,66,0.65)" },
+          angleLines: { color: "rgba(42,49,66,0.65)" },
+          pointLabels: {
+            color: "rgba(233,237,246,0.92)",
+            font: { size: 12, weight: "600" }
+          }
+        }
+      }
+    }
+  });
+
+  // Update chart on input change
+  function wireInputs() {
+    const all = [...document.querySelectorAll("input.num")];
+    all.forEach(inp => {
+      inp.addEventListener("input", () => {
+        inp.value = clamp01to10(inp.value);
+        chart.data.datasets[1].data = readSeries("digital");
+        chart.update();
+        updateScore();
+      });
+    });
+  }
+  wireInputs();
+
+  // Candidate name input listener
+  document.getElementById("candidateName").addEventListener("input", updateLabels);
+
+  // Buttons
+  document.getElementById("resetBtn").addEventListener("click", () => {
+    writeSeries("digital", DEFAULT_DIGITAL);
+    chart.data.datasets[1].data = readSeries("digital");
+    chart.update();
+    updateScore();
+  });
+
+  document.getElementById("sampleBtn").addEventListener("click", () => {
+    writeSeries("digital", SAMPLE_DIGITAL);
+    chart.data.datasets[1].data = readSeries("digital");
+    chart.update();
+    updateScore();
+  });
+
+  document.getElementById("downloadBtn").addEventListener("click", () => {
+    const candidateName = getCandidateName().replace(/\s+/g, '-');
+    const filename = `civic-compass-${candidateName}.png`;
+    const a = document.createElement("a");
+    a.download = filename;
+    a.href = chart.toBase64Image();
+    a.click();
+  });
+
+  // Initialize score line on load
+  updateScore();
+
+  function updateInterpretation(sum) {
+    let text = "";
+
+    if (sum <= 24) {
+      text = "<strong>Fragmented Compass:</strong> Your leader shows significant drift across multiple civic axes. Signals may be loud, but coherence is weak. In such systems, attention often replaces accountability, and momentum substitutes for direction.";
+    } else if (sum <= 39) {
+      text = "<strong>Volatile Alignment:</strong> Your scores suggest uneven civic alignment. Some axes hold, others wobble. This is where systems oscillate—capable of correction, but also vulnerable to amplification, polarization, and capture.";
+    } else if (sum <= 47) {
+      text = "<strong>Transitional Zone:</strong> Your leader operates in a zone of transition. Core civic signals are present, but inconsistently reinforced. Small shifts—especially in narrative responsibility and signal clarity—can have outsized effects.";
+    } else if (sum <= 53) {
+      text = "<strong>Near the Benchmark:</strong> Your compass is largely aligned with the civic benchmark. Gaps remain, but they are narrow and visible. At this level, restraint, coherence, and global responsibility become decisive differentiators.";
+    } else {
+      text = "<strong>Benchmark-Aligned:</strong> Your leader closely mirrors the civic benchmark. Power, responsibility, and signal clarity reinforce one another. The challenge here is not alignment—but sustaining it under pressure.";
+    }
+
+    document.getElementById("interpretation").innerHTML = text;
+  }
+</script>
+</body>
+</html>
